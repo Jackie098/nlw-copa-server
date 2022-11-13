@@ -166,43 +166,95 @@ export async function poolRoutes(fastify: FastifyInstance) {
     }
   );
 
+  // fastify.get(
+  //   "/pools/:id",
+  //   {
+  //     onRequest: [authenticate],
+  //   },
+  //   async (request) => {
+  //     const getPoolParams = z.object({
+  //       id: z.string(),
+  //     });
+
+  //     const { id } = getPoolParams.parse(request.params);
+
+  //     const pool = await prisma.pool.findUnique({
+  //       where: {
+  //         id,
+  //       },
+  //       include: {
+  //         _count: {
+  //           select: {
+  //             participants: true,
+  //           },
+  //         },
+  //         participants: {
+  //           select: {
+  //             id: true,
+
+  //             user: {
+  //               select: {
+  //                 avatarUrl: true,
+  //               },
+  //             },
+  //           },
+  //         },
+  //         owner: {
+  //           select: {
+  //             id: true,
+  //             name: true,
+  //           },
+  //         },
+  //       },
+  //     });
+
+  //     return { pool };
+  //   }
+  // );
+
+  // Extra function developed in lesson 5 during the finalization of mobile
+  // in minute 1:13:51 it is possible to copy the code
   fastify.get(
-    "/pools/:id",
+    "/pools/:poolId",
     {
       onRequest: [authenticate],
     },
-    async (request) => {
+    async (request, reply) => {
       const getPoolParams = z.object({
-        id: z.string(),
+        poolId: z.string(),
       });
 
-      const { id } = getPoolParams.parse(request.params);
+      const { poolId } = getPoolParams.parse(request.params);
 
-      const pool = await prisma.pool.findUnique({
-        where: {
-          id,
-        },
+      const pool = await prisma.pool.findFirst({
         include: {
-          _count: {
+          owner: {
             select: {
-              participants: true,
+              name: true,
             },
           },
           participants: {
             select: {
               id: true,
-
               user: {
                 select: {
                   avatarUrl: true,
                 },
               },
             },
+            take: 4,
           },
-          owner: {
+          _count: {
             select: {
-              id: true,
-              name: true,
+              participants: true,
+            },
+          },
+        },
+        where: {
+          id: poolId,
+          participants: {
+            some: {
+              userId: request.user.sub,
             },
           },
         },

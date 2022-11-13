@@ -17,7 +17,7 @@ async function bootstrap() {
     origin: true,
   });
 
-  // EM produção isso precisa ser uma variável ambiente
+  // In a prd environment, the next code must be a env variable
   await fastify.register(jwt, {
     secret: "nlwcopa",
   });
